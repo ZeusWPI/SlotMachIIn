@@ -1,0 +1,2 @@
+input: {OPEN|CLOSE};$username
+output: {{opened|closed};[{p:$user|manual}] | nxt[$error]}
