@@ -65,7 +65,6 @@ void update_ser1(void) {
   prev_ser1 = GETSER1;
   Serial.print("Ser1");
   Serial.print(prev_ser1);
-
 }
 
 void update_ser2(void) {
@@ -136,7 +135,7 @@ void loop() {
     } 
     
     if (want_closed && current_turn_count > CLOSE_THRESHHOLD) {
-       turn_total(CLOSE);
+      turn_total(CLOSE);
     }
   }
 
