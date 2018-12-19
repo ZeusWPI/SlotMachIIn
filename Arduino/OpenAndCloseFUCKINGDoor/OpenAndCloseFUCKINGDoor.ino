@@ -76,13 +76,13 @@ void update_ser2(void) {
 }
 
 void turn(bool clockwise) {
-  digitalWrite(ROT_CLOCK, LOW);
-  digitalWrite(ROT_CCLOCK, LOW);
+  digitalWrite(ROT_CLOCK, HIGH);
+  digitalWrite(ROT_CCLOCK, HIGH);
   
   if(clockwise) {
-    digitalWrite(ROT_CLOCK, HIGH);
+    digitalWrite(ROT_CLOCK, LOW);
   } else {
-    digitalWrite(ROT_CCLOCK, HIGH);
+    digitalWrite(ROT_CCLOCK, LOW);
   }
 
   analogWrite(MOTOR_PWM, TURN_SPEED);
