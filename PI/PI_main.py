@@ -10,7 +10,7 @@ CLOSE = 24
 old_GET_CLOSE = True
 old_GET_OPEN = True
 
-gpio.setmode(gpio.BMC)
+gpio.setmode(gpio.BCM)
 gpio.setup(GET_OPEN, gpio.IN)
 gpio.setup(GET_CLOSE, gpio.IN)
 gpio.setup(OPEN, gpio.OUT)
@@ -25,32 +25,18 @@ last_cmd_time = time.time()
 
 is_open = False
 
-if __name__ == '__main__':
-    _thread.start_new_thread( check_status, ())
-    old_GET_OPEN = gpio.input(GET_OPEN)
-    old_GET_CLOSE = gpio.input(GET_CLOSE)
-    for line in sys.stdin:
-        last_cmd_time = time.time()
-        line = line.split(',')
-        user = line[1]
-        cmd = line[0]
-        if cmd.upper() == 'OPEN':
-            gpio.output(CLOSE, LOW)
-            gpio.output(OPEN, HIGH)
-            print(f"opened;p:{user}")
-
-        elif cmd.upper() == 'CLOSE':
-            gpio.output(OPEN, LOW)
-            gpio.output(CLOSE, HIGH)
-            print(f"closed;p:{user}")
-
-        print(line)
-
 def check_status():
     while True:
+        old_GET_CLOSE
+        global old_GET_CLOSE
+        old_GET_OPEN
+        global old_GET_OPEN
+
         if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
            print("NXT: Error: Both pins are the same")
         if not ((old_GET_OPEN == gpio.input(GET_OPEN)) and (old_GET_CLOSE == gpio.input(GET_CLOSE))):
+            old_GET_OPEN = gpio.input(GET_OPEN)
+            old_GET_CLOSE = gpio.input(GET_CLOSE)
             t = time.time()
             if last_cmd_time + time_for_not_manual < t:
                 # Manually opened
@@ -61,30 +47,30 @@ def check_status():
         time.sleep(1)
 
 if __name__ == '__main__':
+    old_GET_CLOSE
+    global old_GET_CLOSE
+    old_GET_OPEN
+    global old_GET_OPEN
+    
+    old_GET_OPEN = gpio.input(GET_OPEN)
+    old_GET_CLOSE = gpio.input(GET_CLOSE)
     _thread.start_new_thread( check_status, ())
-
     for line in sys.stdin:
-        lline = line
-        try:
-            last_cmd_time = time.time()
-            line = line.strip().split(';')
-            user = line[1]
-            cmd = line[0]
-            if cmd.upper() == 'OPEN':
-                # OPEN DOOR
-                # Set pin's idk what to HIGH
-                print(f"opened;p:{user}")
+        last_cmd_time = time.time()
+        line = line.split(',')
+        user = line[1]
+        cmd = line[0]
+        if cmd.upper() == 'OPEN':
+            gpio.output(CLOSE, LOW)
+            gpio.output(OPEN, HIGH)
+            print("opened;p:"+user) 
 
-            elif cmd.upper() == 'CLOSE':
-                # CLOSE DOOR
-                # Set pin's idk what to HIGH
-                print(f"closed;p:{user}")
+        elif cmd.upper() == 'CLOSE':
+            gpio.output(OPEN, LOW)
+            gpio.output(CLOSE, HIGH)
+            print("closed;p:"+user)
 
-            else:
-                print(f"nxt: invalid command: {lline}")
-        except:
-            print(f"nxt: shit happend with line \"{lline}\"")
-
+        print(line)
 
 # GPIO.setmode(GPIO.BCM)
 # GPIO.setwarnings(False)
