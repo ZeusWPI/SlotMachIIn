@@ -23,7 +23,7 @@
 #define IS_CLOSE_PIN 11
 
 // Half the max speed
-#define TURN_SPEED 200
+#define TURN_SPEED 180
 
 #define GETSER1 (digitalRead(SER1) == HIGH)
 #define GETSER2 (digitalRead(SER2) == HIGH)
@@ -32,8 +32,8 @@
 #define CLOSE true
 
 // Delta equals 720? = 1 full turn, 2 interupts for 1 'tick'
-#define CLOSE_THRESHHOLD -200
-#define OPEN_THRESHHOLD -900
+#define CLOSE_THRESHHOLD -400
+#define OPEN_THRESHHOLD -800
                                 // 11         10              00              01
 const int cwSequence[] = {3, 2, 0, 1};
 const int pulses_per_turn = 720; // http://trivox.tripod.com/lego-nxt-motor-input-output.html
@@ -73,9 +73,7 @@ void init_motor_pinout() {
 }
 
 void update_openness() {
-  is_open = current_turn_count < OPEN_THRESHHOLD;
-  is_closed = current_turn_count > CLOSE_THRESHHOLD;
-
+  
   if (is_open != current_turn_count < OPEN_THRESHHOLD) {
     is_open = current_turn_count < OPEN_THRESHHOLD;
     if (is_open) {
@@ -103,8 +101,6 @@ void update_current_turn() {
     current_turn_count ++;
   } else if (index == (prev_cw_index + 1) % 4) {
     current_turn_count --;
-  } else {
-    Serial.println("Skipped");
   }
 
   prev_cw_index = index;
@@ -130,17 +126,21 @@ void stop_turn(void) {
 }
 
 void turn_total(bool dir, int deg) {
+  Serial.print("Turning");
+  Serial.println(dir, BIN);
   int from_state = current_turn_count;
   int prev_state = current_turn_count;
+      Serial.println(current_turn_count);
+
   turn(dir);
   delay(100);
   
   while(abs(from_state - current_turn_count) < deg && prev_state != current_turn_count) {
     prev_state = current_turn_count;
-    Serial.println(current_turn_count);
     delay(100);
   }
-  
+      Serial.println(current_turn_count);
+
   stop_turn();
 
   is_open = dir == OPEN;
@@ -148,13 +148,19 @@ void turn_total(bool dir, int deg) {
 }
 
 void determine_start(void) {
-  turn_total(OPEN, 7000);
+  turn_total(CLOSE, 7000);
   current_turn_count = 0;
 
-  turn_total(CLOSE, 720);
+  turn_total(OPEN, 20);
+}
+
+void stop() {
+  stop_turn();
+  exit(0);
 }
 
 void setup() {
+//  stop();
   Serial.begin(9600);
 
   init_motor_pinout();
@@ -180,11 +186,11 @@ void loop() {
     Serial.println(want_open, BIN);
     Serial.print("Want close ");
     Serial.println(want_closed, BIN);
-    if (want_closed) { //&& !is_closed) {
+    if (want_closed && !is_closed) {
       turn_total(CLOSE, 540);
     }
     
-    if (want_open) { //&& !is_open) {
+    if (want_open && !is_open) {
       turn_total(OPEN, 540);
     }
   }
