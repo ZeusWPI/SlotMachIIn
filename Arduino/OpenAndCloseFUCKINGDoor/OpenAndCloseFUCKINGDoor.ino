@@ -23,26 +23,46 @@
 #define IS_CLOSE_PIN 11
 
 // Half the max speed
-#define TURN_SPEED 128
+#define TURN_SPEED 200
 
 #define GETSER1 (digitalRead(SER1) == HIGH)
 #define GETSER2 (digitalRead(SER2) == HIGH)
 
-#define OPEN true
-#define CLOSE false
+#define OPEN false
+#define CLOSE true
 
-// TODO, experiment!
-#define CLOSE_THRESHHOLD 50
-#define OPEN_THRESHHOLD 100
+// Delta equals 720? = 1 full turn, 2 interupts for 1 'tick'
+#define CLOSE_THRESHHOLD -200
+#define OPEN_THRESHHOLD -900
                                 // 11         10              00              01
-//const TurnTuple cwSequence[] = {{true, true}, {true, false}, {false, false}, {false, true}};
-const int pulses_per_turn = 180; // http://trivox.tripod.com/lego-nxt-motor-input-output.html
+const int cwSequence[] = {3, 2, 0, 1};
+const int pulses_per_turn = 720; // http://trivox.tripod.com/lego-nxt-motor-input-output.html
 
 volatile int current_turn_count = 0;
-
-volatile bool prev_ser1, prev_ser2 = false;
+volatile int prev_cw_index = 0;
 
 bool is_open = false;
+bool is_closed = false;
+
+int find_index( const int a[], int size, int value )
+{
+    int index = 0;
+
+    while ( index < size && a[index] != value ) ++index;
+
+    return ( index == size ? -1 : index );
+}
+
+int get_cw_index(bool ser1, bool ser2) {
+  int out = 0;
+  if (ser1) {
+    out += 2;
+  }
+  if (ser2) {
+    out += 1;
+  }
+  return find_index(cwSequence, 4, out);
+}
 
 void init_motor_pinout() {
   pinMode(MOTOR_PWM, OUTPUT);
@@ -52,26 +72,44 @@ void init_motor_pinout() {
   pinMode(ROT_CCLOCK, OUTPUT);
 }
 
-int is_turning_clockwise(bool ser1, bool ser2) {
-   if(ser1 == prev_ser1) {
-    return (prev_ser2 && !ser2) || (!prev_ser2 && ser2);
-   } else {
-    return (prev_ser1 && !ser1) || (!prev_ser1 && ser1);
-   }
+void update_openness() {
+  is_open = current_turn_count < OPEN_THRESHHOLD;
+  is_closed = current_turn_count > CLOSE_THRESHHOLD;
+
+  if (is_open != current_turn_count < OPEN_THRESHHOLD) {
+    is_open = current_turn_count < OPEN_THRESHHOLD;
+    if (is_open) {
+      digitalWrite(IS_OPEN_PIN, HIGH);
+    } else {
+      digitalWrite(IS_OPEN_PIN, LOW);
+    }
+  }
+
+  if (is_closed != current_turn_count > CLOSE_THRESHHOLD) {
+    is_closed = current_turn_count > CLOSE_THRESHHOLD;
+    if (is_closed) {
+      digitalWrite(IS_CLOSE_PIN, HIGH);
+    } else {
+      digitalWrite(IS_CLOSE_PIN, LOW);
+    }
+  }
+  
 }
 
-void update_ser1(void) {
-  current_turn_count += is_turning_clockwise(GETSER1, prev_ser2);
-  prev_ser1 = GETSER1;
-  Serial.print("Ser1");
-  Serial.print(prev_ser1);
-}
+void update_current_turn() {
+  int index = get_cw_index(GETSER1, GETSER2);
 
-void update_ser2(void) {
-  current_turn_count += is_turning_clockwise(prev_ser1, GETSER2);
-  prev_ser1 = GETSER2;
-  Serial.print("Ser2");
-  Serial.print(prev_ser2);
+  if ((index + 1) % 4 == prev_cw_index) {
+    current_turn_count ++;
+  } else if (index == (prev_cw_index + 1) % 4) {
+    current_turn_count --;
+  } else {
+    Serial.println("Skipped");
+  }
+
+  prev_cw_index = index;
+
+  update_openness();
 }
 
 void turn(bool clockwise) {
@@ -91,24 +129,29 @@ void stop_turn(void) {
    analogWrite(MOTOR_PWM, 0);
 }
 
-void turn_total(bool dir) {
+void turn_total(bool dir, int deg) {
+  int from_state = current_turn_count;
   int prev_state = current_turn_count;
   turn(dir);
   delay(100);
   
-  while(1 || prev_state != current_turn_count) {
+  while(abs(from_state - current_turn_count) < deg && prev_state != current_turn_count) {
     prev_state = current_turn_count;
+    Serial.println(current_turn_count);
     delay(100);
   }
   
   stop_turn();
+
+  is_open = dir == OPEN;
+  is_closed = !is_open;
 }
 
 void determine_start(void) {
-  turn_total(CLOSE);
-  
+  turn_total(OPEN, 7000);
   current_turn_count = 0;
-  is_open = false;
+
+  turn_total(CLOSE, 720);
 }
 
 void setup() {
@@ -116,13 +159,16 @@ void setup() {
 
   init_motor_pinout();
   pinMode(OPEN_PIN, INPUT);
+  digitalWrite(OPEN_PIN, HIGH);
   pinMode(CLOSE_PIN, INPUT);
+  digitalWrite(CLOSE_PIN, HIGH);
+  
   pinMode(IS_OPEN_PIN, OUTPUT);
   pinMode(IS_CLOSE_PIN, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(SER1), update_ser1, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(SER2), update_ser2, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(SER1), update_current_turn, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(SER2), update_current_turn, CHANGE);
 
-  //determine_start();
+  determine_start();
 }
 
 void loop() {
@@ -130,16 +176,19 @@ void loop() {
   bool want_closed = digitalRead(CLOSE_PIN) == HIGH;
 
   if (want_open != want_closed) {
-    if (want_open && current_turn_count < OPEN_THRESHHOLD) {
-      turn_total(OPEN);
-    } 
+    Serial.print("Want open ");
+    Serial.println(want_open, BIN);
+    Serial.print("Want close ");
+    Serial.println(want_closed, BIN);
+    if (want_closed) { //&& !is_closed) {
+      turn_total(CLOSE, 540);
+    }
     
-    if (want_closed && current_turn_count > CLOSE_THRESHHOLD) {
-      turn_total(CLOSE);
+    if (want_open) { //&& !is_open) {
+      turn_total(OPEN, 540);
     }
   }
 
   delay(100);
 }
-
 
