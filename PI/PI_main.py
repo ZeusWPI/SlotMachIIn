@@ -44,25 +44,29 @@ user = ''
 last_cmd_time = time.time()
 
 if __name__ == '__main__':
-    gpio.output(OPEN, gpio.HIGH)
-    gpio.output(CLOSE, gpio.HIGH)    
-    old_GET_OPEN = gpio.input(GET_OPEN)
-    old_GET_CLOSE = gpio.input(GET_CLOSE)
-    _thread.start_new_thread( check_status, ())
+    try:
 
-    for line in sys.stdin:
-        last_cmd_time = time.time()
-        line = line.split(',')
-        user = line[1]
-        cmd = line[0]
-        if cmd.upper() == 'OPEN':
-            gpio.output(OPEN, gpio.LOW)
-            time.sleep(0.5)
-            gpio.output(OPEN, gpio.HIGH)
-            print("opened;p:"+user) 
+        gpio.output(OPEN, gpio.HIGH)
+        gpio.output(CLOSE, gpio.HIGH)    
+        old_GET_OPEN = gpio.input(GET_OPEN)
+        old_GET_CLOSE = gpio.input(GET_CLOSE)
+        _thread.start_new_thread( check_status, ())
 
-        elif cmd.upper() == 'CLOSE':
-            gpio.output(CLOSE, gpio.LOW)
-            time.sleep(0.5)
-            gpio.output(CLOSE, gpio.HIGH)
-            print("closed;p:"+user)
+        for line in sys.stdin:
+            last_cmd_time = time.time()
+            line = line.split(',')
+            user = line[1]
+            cmd = line[0]
+            if cmd.upper() == 'OPEN':
+                gpio.output(OPEN, gpio.LOW)
+                time.sleep(0.5)
+                gpio.output(OPEN, gpio.HIGH)
+                print("opened;p:"+user) 
+
+            elif cmd.upper() == 'CLOSE':
+                gpio.output(CLOSE, gpio.LOW)
+                time.sleep(0.5)
+                gpio.output(CLOSE, gpio.HIGH)
+                print("closed;p:"+user)
+    finally:
+        gpio.cleanup()
