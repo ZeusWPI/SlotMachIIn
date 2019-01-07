@@ -36,16 +36,16 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1047"
+     inkscape:window-width="960"
+     inkscape:window-height="1017"
      id="namedview1967"
      showgrid="false"
      inkscape:zoom="2.7389046"
-     inkscape:cx="677.25608"
-     inkscape:cy="184.64402"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
+     inkscape:cx="477.99836"
+     inkscape:cy="724.36586"
+     inkscape:window-x="960"
+     inkscape:window-y="30"
+     inkscape:window-maximized="0"
      inkscape:current-layer="svg1965" />
   <title
      id="title2" />
@@ -60,9 +60,9 @@ rect, circle, ellipse, polyline, line, polygon, path {shape-rendering:crispEdges
      y="-10.1"
      width="1169"
      height="826.7"
-     fill="#FFFFFF"
+     id="rect6"
      stroke="none"
-     id="rect6" />
+     fill="#FFFFFF" />
   <g
      c_etype="pinpart"
      c_shapetype="group"
@@ -8036,4 +8036,26 @@ rect, circle, ellipse, polyline, line, polygon, path {shape-rendering:crispEdges
        cy="285"
        cx="480" />
   </g>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:13.24634838px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.3311587"
+     x="426.92111"
+     y="125.9495"
+     id="text1999"><tspan
+       sodipodi:role="line"
+       id="tspan1997"
+       x="426.92111"
+       y="125.9495"
+       style="stroke-width:0.3311587">24, 25</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.83267307px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.27081683"
+     x="470.16559"
+     y="124.79785"
+     id="text2003"><tspan
+       sodipodi:role="line"
+       id="tspan2001"
+       x="470.16559"
+       y="124.79785"
+       style="stroke-width:0.27081683">22, 27</tspan></text>
 </svg>

@@ -3,6 +3,27 @@ import time
 import _thread
 import sys
 
+def check_status():
+    while True:
+        global old_GET_CLOSE
+        global GET_CLOSE
+        global GET_OPEN
+        global old_GET_OPEN
+
+        if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
+           print("NXT: Error: Both pins are the same")
+        if not ((old_GET_OPEN == gpio.input(GET_OPEN)) and (old_GET_CLOSE == gpio.input(GET_CLOSE))):
+            old_GET_OPEN = gpio.input(GET_OPEN)
+            old_GET_CLOSE = gpio.input(GET_CLOSE)
+            t = time.time()
+            if last_cmd_time + time_for_not_manual < t:
+                # Manually opened
+                if is_open:
+                    print("opened;manual")
+                else:
+                    print("closed;manual")
+        time.sleep(1)
+
 GET_OPEN = 21
 GET_CLOSE = 22
 OPEN = 23
@@ -25,33 +46,8 @@ last_cmd_time = time.time()
 
 is_open = False
 
-def check_status():
-    while True:
-        global old_GET_CLOSE
-
-        global old_GET_OPEN
-
-
-        if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
-           print("NXT: Error: Both pins are the same")
-        if not ((old_GET_OPEN == gpio.input(GET_OPEN)) and (old_GET_CLOSE == gpio.input(GET_CLOSE))):
-            old_GET_OPEN = gpio.input(GET_OPEN)
-            old_GET_CLOSE = gpio.input(GET_CLOSE)
-            t = time.time()
-            if last_cmd_time + time_for_not_manual < t:
-                # Manually opened
-                if is_open:
-                    print("opened;manual")
-                else:
-                    print("closed;manual")
-        time.sleep(1)
 
 if __name__ == '__main__':
-    global old_GET_CLOSE
-    
-    global old_GET_OPEN
-    
-
     gpio.output(OPEN, gpio.HIGH)
     gpio.output(CLOSE, gpio.HIGH)    
     old_GET_OPEN = gpio.input(GET_OPEN)
