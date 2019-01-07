@@ -23,7 +23,7 @@ def check_status():
                         print("closed;manual")
         time.sleep(1)
 
-GET_OPEN = 21
+GET_OPEN = 27
 GET_CLOSE = 22
 OPEN = 23
 CLOSE = 24
@@ -56,11 +56,13 @@ if __name__ == '__main__':
         user = line[1]
         cmd = line[0]
         if cmd.upper() == 'OPEN':
+            gpio.output(CLOSE, gpio.LOW)
+            time.sleep(0.5)
             gpio.output(CLOSE, gpio.HIGH)
-            gpio.output(OPEN, gpio.LOW)
             print("opened;p:"+user) 
 
         elif cmd.upper() == 'CLOSE':
+            gpio.output(OPEN, gpio.LOW)
+            time.sleep(0.5)
             gpio.output(OPEN, gpio.HIGH)
-            gpio.output(CLOSE, gpio.LOW)
             print("closed;p:"+user)
