@@ -27,10 +27,10 @@ is_open = False
 
 def check_status():
     while True:
-        old_GET_CLOSE
         global old_GET_CLOSE
-        old_GET_OPEN
+
         global old_GET_OPEN
+
 
         if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
            print("NXT: Error: Both pins are the same")
@@ -47,11 +47,13 @@ def check_status():
         time.sleep(1)
 
 if __name__ == '__main__':
-    old_GET_CLOSE
     global old_GET_CLOSE
-    old_GET_OPEN
+    
     global old_GET_OPEN
     
+
+    gpio.output(OPEN, gpio.HIGH)
+    gpio.output(CLOSE, gpio.HIGH)    
     old_GET_OPEN = gpio.input(GET_OPEN)
     old_GET_CLOSE = gpio.input(GET_CLOSE)
     _thread.start_new_thread( check_status, ())
@@ -61,13 +63,13 @@ if __name__ == '__main__':
         user = line[1]
         cmd = line[0]
         if cmd.upper() == 'OPEN':
-            gpio.output(CLOSE, LOW)
-            gpio.output(OPEN, HIGH)
+            gpio.output(CLOSE, gpio.HIGH)
+            gpio.output(OPEN, gpio.LOW)
             print("opened;p:"+user) 
 
         elif cmd.upper() == 'CLOSE':
-            gpio.output(OPEN, LOW)
-            gpio.output(CLOSE, HIGH)
+            gpio.output(OPEN, gpio.HIGH)
+            gpio.output(CLOSE, gpio.LOW)
             print("closed;p:"+user)
 
         print(line)
