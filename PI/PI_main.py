@@ -1,27 +1,26 @@
 import RPi.GPIO as gpio
 import time
-import _thread
+import thread as _thread
 import sys
 
 def check_status():
     while True:
         global old_GET_CLOSE
-        global GET_CLOSE
-        global GET_OPEN
         global old_GET_OPEN
 
-        if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
-           print("NXT: Error: Both pins are the same")
         if not ((old_GET_OPEN == gpio.input(GET_OPEN)) and (old_GET_CLOSE == gpio.input(GET_CLOSE))):
             old_GET_OPEN = gpio.input(GET_OPEN)
             old_GET_CLOSE = gpio.input(GET_CLOSE)
-            t = time.time()
-            if last_cmd_time + time_for_not_manual < t:
-                # Manually opened
-                if is_open:
-                    print("opened;manual")
+
+            if last_cmd_time + time_for_not_manual < time.time():
+                if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
+                    print("NXT: Error: Both pins are the same")
                 else:
-                    print("closed;manual")
+                    # Manually opened
+                    if old_GET_CLOSE == gpio.HIGH:
+                        print("opened;manual")
+                    else:
+                        print("closed;manual")
         time.sleep(1)
 
 GET_OPEN = 21
@@ -44,15 +43,13 @@ lline = ''
 user = ''
 last_cmd_time = time.time()
 
-is_open = False
-
-
 if __name__ == '__main__':
     gpio.output(OPEN, gpio.HIGH)
     gpio.output(CLOSE, gpio.HIGH)    
     old_GET_OPEN = gpio.input(GET_OPEN)
     old_GET_CLOSE = gpio.input(GET_CLOSE)
     _thread.start_new_thread( check_status, ())
+
     for line in sys.stdin:
         last_cmd_time = time.time()
         line = line.split(',')
@@ -67,14 +64,3 @@ if __name__ == '__main__':
             gpio.output(OPEN, gpio.HIGH)
             gpio.output(CLOSE, gpio.LOW)
             print("closed;p:"+user)
-
-        print(line)
-
-# GPIO.setmode(GPIO.BCM)
-# GPIO.setwarnings(False)
-# GPIO.setup(18,GPIO.OUT)
-# print "LED on"
-# GPIO.output(18,GPIO.HIGH)
-# time.sleep(1)
-# print "LED off"
-# GPIO.output(18,GPIO.LOW)
