@@ -56,13 +56,13 @@ if __name__ == '__main__':
         user = line[1]
         cmd = line[0]
         if cmd.upper() == 'OPEN':
-            gpio.output(CLOSE, gpio.LOW)
-            time.sleep(0.5)
-            gpio.output(CLOSE, gpio.HIGH)
-            print("opened;p:"+user) 
-
-        elif cmd.upper() == 'CLOSE':
             gpio.output(OPEN, gpio.LOW)
             time.sleep(0.5)
             gpio.output(OPEN, gpio.HIGH)
+            print("opened;p:"+user) 
+
+        elif cmd.upper() == 'CLOSE':
+            gpio.output(CLOSE, gpio.LOW)
+            time.sleep(0.5)
+            gpio.output(CLOSE, gpio.HIGH)
             print("closed;p:"+user)
