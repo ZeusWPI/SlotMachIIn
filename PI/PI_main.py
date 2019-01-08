@@ -6,7 +6,7 @@ import logging
 import traceback
 
 
-def check_status():
+def check_status(handle):
     while True:
         global old_GET_CLOSE
         global old_GET_OPEN
@@ -17,15 +17,20 @@ def check_status():
 
             if last_cmd_time + time_for_not_manual < time.time():
                 if gpio.input(GET_OPEN) == gpio.input(GET_CLOSE):
-                    print("NXT: Error: Both pins are the same")
+                    print("NXT: nxt: Error: Both pins are the same")
+                    sys.stdout.flush()
                 else:
                     # Manually opened
                     if old_GET_CLOSE == gpio.HIGH:
                         print("opened;manual")
                         sys.stdout.flush()
+                        handle.write("detected open\n")
+                        handle.flush()
                     else:
                         print("closed;manual")
                         sys.stdout.flush()
+                        handle.write("detected close\n")
+                        handle.flush()
         time.sleep(1)
 
 GET_OPEN = 27
@@ -58,7 +63,7 @@ with open("/home/slotmachien/SlotMachIIn/PI/log.me", "a") as f:
         gpio.output(CLOSE, gpio.HIGH)
         old_GET_OPEN = gpio.input(GET_OPEN)
         old_GET_CLOSE = gpio.input(GET_CLOSE)
-        _thread.start_new_thread(check_status, ())
+        _thread.start_new_thread(check_status, (f))
         print("open;manual")
         sys.stdout.flush()
         while True:
