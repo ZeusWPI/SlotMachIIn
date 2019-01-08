@@ -11,12 +11,14 @@ def check_status(handle):
         global old_GET_CLOSE
         global old_GET_OPEN
 
-        if not ((old_GET_OPEN == gpio.input(GET_OPEN)) and (old_GET_CLOSE == gpio.input(GET_CLOSE))):
-            old_GET_OPEN = gpio.input(GET_OPEN)
-            old_GET_CLOSE = gpio.input(GET_CLOSE)
+        curr_open = gpio.input(GET_OPEN)
+        curr_close = gpio.input(GET_CLOSE)
+        if (old_GET_OPEN != curr_open) or (old_GET_CLOSE != curr_close):
+            old_GET_OPEN = curr_open
+            old_GET_CLOSE = curr_close
 
             if last_cmd_time + time_for_not_manual < time.time():
-                if gpio.input(GET_OPEN) == gpio.input(GET_CLOSE):
+                if curr_open == curr_close:
                     print("NXT: nxt: Error: Both pins are the same")
                     sys.stdout.flush()
                 else:
@@ -32,6 +34,7 @@ def check_status(handle):
                         handle.write("detected close\n")
                         handle.flush()
         time.sleep(1)
+
 
 GET_OPEN = 27
 GET_CLOSE = 22
