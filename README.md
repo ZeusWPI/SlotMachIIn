@@ -1,9 +1,9 @@
 # SlotMachIIn
 ## IMPORTANT
-Make sure to connect the ground of the arduino with the ground of the Raspberry Pi!
+Make sure to connect the ground of the Arduino with the ground of the Raspberry Pi!
 
 ## Files
-Arduino : file that runs on the arduino.
+Arduino : file that runs on the Arduino.
 PI : files that run on the Raspberry PI.
 
 ## What pins are used?
@@ -16,4 +16,4 @@ To send commands to the arduino: open  -> PIN 23
 				 close -> PIN 24
 
 ## How does it work?
-No idea
+No idea, but it does
