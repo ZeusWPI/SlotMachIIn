@@ -49,7 +49,6 @@ gpio.setup(CLOSE, gpio.OUT)
 
 time_for_not_manual = 10
 
-lline = ''
 user = ''
 last_cmd_time = time.time()
 
@@ -68,14 +67,14 @@ with open("/home/slotmachien/SlotMachIIn/PI/log.me", "a") as f:
         sys.stdout.flush()
         while True:
             line = sys.stdin.readline()
-            last_cmd_time = time.time()
-            line = line.split(';')
             if len(line) < 2:
                 continue
             f.write("got line "+line+"\n")
             f.flush()
-            cmd = line[0]
-            user = line[1]
+            last_cmd_time = time.time()
+            parts = line.split(';')
+            cmd = parts[0]
+            user = parts[1]
             if cmd.upper() == 'OPEN':
                 gpio.output(OPEN, gpio.LOW)
                 time.sleep(0.5)
