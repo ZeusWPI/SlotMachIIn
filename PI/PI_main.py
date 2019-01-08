@@ -2,6 +2,9 @@ import RPi.GPIO as gpio
 import time
 import thread as _thread
 import sys
+import logging
+import traceback
+
 
 def check_status():
     while True:
@@ -13,14 +16,16 @@ def check_status():
             old_GET_CLOSE = gpio.input(GET_CLOSE)
 
             if last_cmd_time + time_for_not_manual < time.time():
-                if (gpio.input(GET_OPEN) == gpio.input(GET_CLOSE)):
+                if gpio.input(GET_OPEN) == gpio.input(GET_CLOSE):
                     print("NXT: Error: Both pins are the same")
                 else:
                     # Manually opened
                     if old_GET_CLOSE == gpio.HIGH:
                         print("opened;manual")
+                        sys.stdout.flush()
                     else:
                         print("closed;manual")
+                        sys.stdout.flush()
         time.sleep(1)
 
 GET_OPEN = 27
@@ -43,30 +48,47 @@ lline = ''
 user = ''
 last_cmd_time = time.time()
 
-if __name__ == '__main__':
+
+with open("/home/slotmachien/SlotMachIIn/PI/log.me", "a") as f:
+    f.write("starting"+str(time.time())+"\n")
+    f.flush()
     try:
 
         gpio.output(OPEN, gpio.HIGH)
-        gpio.output(CLOSE, gpio.HIGH)    
+        gpio.output(CLOSE, gpio.HIGH)
         old_GET_OPEN = gpio.input(GET_OPEN)
         old_GET_CLOSE = gpio.input(GET_CLOSE)
-        _thread.start_new_thread( check_status, ())
-
-        for line in sys.stdin:
+        _thread.start_new_thread(check_status, ())
+        print("open;manual")
+        sys.stdout.flush()
+        while True:
+            line = sys.stdin.readline()
+            f.write("got line "+line+"\n")
+            f.flush()
             last_cmd_time = time.time()
-            line = line.split(',')
-            user = line[1]
+            line = line.split(';')
+            if len(line) < 2:
+                continue
             cmd = line[0]
+            user = line[1]
             if cmd.upper() == 'OPEN':
                 gpio.output(OPEN, gpio.LOW)
                 time.sleep(0.5)
                 gpio.output(OPEN, gpio.HIGH)
-                print("opened;p:"+user) 
-
+                print("opened;p:"+user)
+                sys.stdout.flush()
             elif cmd.upper() == 'CLOSE':
                 gpio.output(CLOSE, gpio.LOW)
                 time.sleep(0.5)
                 gpio.output(CLOSE, gpio.HIGH)
                 print("closed;p:"+user)
+                sys.stdout.flush()
+            else:
+                print("opened;manual")
+                sys.stdout.flush()
+    except Exception as e:
+        f.write(traceback.format_exc())
     finally:
+        f.write("cleanup\n")
+        f.flush()
         gpio.cleanup()
