@@ -64,7 +64,7 @@ with open("/home/slotmachien/SlotMachIIn/PI/log.me", "a") as f:
         old_GET_OPEN = gpio.input(GET_OPEN)
         old_GET_CLOSE = gpio.input(GET_CLOSE)
         _thread.start_new_thread(check_status, (f,))
-        print("open;manual")
+        print("opened;manual")
         sys.stdout.flush()
         while True:
             line = sys.stdin.readline()
