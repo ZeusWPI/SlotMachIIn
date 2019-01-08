@@ -68,12 +68,12 @@ with open("/home/slotmachien/SlotMachIIn/PI/log.me", "a") as f:
         sys.stdout.flush()
         while True:
             line = sys.stdin.readline()
-            f.write("got line "+line+"\n")
-            f.flush()
             last_cmd_time = time.time()
             line = line.split(';')
             if len(line) < 2:
                 continue
+            f.write("got line "+line+"\n")
+            f.flush()
             cmd = line[0]
             user = line[1]
             if cmd.upper() == 'OPEN':
