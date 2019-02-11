@@ -9,11 +9,16 @@ PI : files that run on the Raspberry PI.
 ## What pins are used?
 
 #### On the Raspberry Pi:
-To get the Arduino's status for: open  -> PIN 21
+PIN 27 looks like PIN 21 but it is actually Raspberry Pi 1 Rev 2 (2011.12)  
+To get the Arduino's status for: open  -> PIN 27
 				 close -> PIN 22
 
 To send commands to the arduino: open  -> PIN 23
 				 close -> PIN 24
+
+#### On the Arduino:
+This is the schematic, enjoy!
+![Alt Schematic](Schematic_SlotmachIIn.svg)
 
 ## How does it work?
 No idea, but it does
