@@ -1,8 +1,3 @@
-
-/*
-  FUCKING FUCK THIS FUCKIN KAK SHIT
-*/
-
 // ananogWrite value between 0 and 255 (8 bit value)
 
 // Connections to motor controls
@@ -36,6 +31,8 @@
 #define OPEN_THRESHHOLD -800
                                 // 11         10              00              01
 const int cwSequence[] = {3, 2, 0, 1};
+// The inverse of cwSequence: cwSequence[reverseCwSequence[i]] = i
+const int reverseCwSequence[] = {2, 3, 1, 0};
 const int pulses_per_turn = 720; // http://trivox.tripod.com/lego-nxt-motor-input-output.html
 
 volatile int current_turn_count = 0;
@@ -43,15 +40,6 @@ volatile int prev_cw_index = 0;
 
 bool is_open = false;
 bool is_closed = false;
-
-int find_index( const int a[], int size, int value )
-{
-    int index = 0;
-
-    while ( index < size && a[index] != value ) ++index;
-
-    return ( index == size ? -1 : index );
-}
 
 int get_cw_index(bool ser1, bool ser2) {
   int out = 0;
@@ -61,7 +49,7 @@ int get_cw_index(bool ser1, bool ser2) {
   if (ser2) {
     out += 1;
   }
-  return find_index(cwSequence, 4, out);
+  return reverseCwSequence[out];
 }
 
 void init_motor_pinout() {
@@ -73,7 +61,7 @@ void init_motor_pinout() {
 }
 
 void update_openness() {
-  
+
   if (is_open != current_turn_count < OPEN_THRESHHOLD) {
     is_open = current_turn_count < OPEN_THRESHHOLD;
     if (is_open) {
@@ -91,7 +79,7 @@ void update_openness() {
       digitalWrite(IS_CLOSE_PIN, LOW);
     }
   }
-  
+
 }
 
 void update_current_turn() {
@@ -111,7 +99,7 @@ void update_current_turn() {
 void turn(bool clockwise) {
   digitalWrite(ROT_CLOCK, HIGH);
   digitalWrite(ROT_CCLOCK, HIGH);
-  
+
   if(clockwise) {
     digitalWrite(ROT_CLOCK, LOW);
   } else {
@@ -126,7 +114,8 @@ void stop_turn(void) {
 }
 
 void turn_total(bool dir, int deg) {
-  Serial.print("Turning");
+  Serial.print("In turn_total");
+  Serial.print("Turning ");
   Serial.println(dir, BIN);
   int from_state = current_turn_count;
   int prev_state = current_turn_count;
@@ -134,7 +123,7 @@ void turn_total(bool dir, int deg) {
 
   turn(dir);
   delay(100);
-  
+
   while(abs(from_state - current_turn_count) < deg && prev_state != current_turn_count) {
     prev_state = current_turn_count;
     delay(100);
@@ -168,7 +157,7 @@ void setup() {
   digitalWrite(OPEN_PIN, HIGH);
   pinMode(CLOSE_PIN, INPUT);
   digitalWrite(CLOSE_PIN, HIGH);
-  
+
   pinMode(IS_OPEN_PIN, OUTPUT);
   pinMode(IS_CLOSE_PIN, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(SER1), update_current_turn, CHANGE);
@@ -182,14 +171,16 @@ void loop() {
   bool want_closed = digitalRead(CLOSE_PIN) == HIGH;
 
   if (want_open != want_closed) {
-    Serial.print("Want open ");
-    Serial.println(want_open, BIN);
-    Serial.print("Want close ");
+    Serial.print("Yeetness=");
+    Serial.println(current_turn_count, DEC);
+    Serial.print("open=");
+    Serial.print(want_open, BIN);
+    Serial.print(",close=");
     Serial.println(want_closed, BIN);
     if (want_closed && !is_closed) {
       turn_total(CLOSE, 540);
     }
-    
+
     if (want_open && !is_open) {
       turn_total(OPEN, 540);
     }
@@ -197,4 +188,3 @@ void loop() {
 
   delay(100);
 }
-
