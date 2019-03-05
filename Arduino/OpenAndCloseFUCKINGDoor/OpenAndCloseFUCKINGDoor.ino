@@ -23,7 +23,7 @@
 #define IS_CLOSE_PIN 11
 
 // Half the max speed
-#define TURN_SPEED 180
+#define TURN_SPEED 200
 
 #define GETSER1 (digitalRead(SER1) == HIGH)
 #define GETSER2 (digitalRead(SER2) == HIGH)
@@ -91,7 +91,6 @@ void update_openness() {
       digitalWrite(IS_CLOSE_PIN, LOW);
     }
   }
-  
 }
 
 void update_current_turn() {
@@ -105,7 +104,10 @@ void update_current_turn() {
 
   prev_cw_index = index;
 
-  update_openness();
+  Serial.print("turn count ");
+  Serial.println(index);
+
+  //update_openness();
 }
 
 void turn(bool clockwise) {
@@ -126,11 +128,13 @@ void stop_turn(void) {
 }
 
 void turn_total(bool dir, int deg) {
-  Serial.print("Turning");
+  Serial.print("Turning ");
   Serial.println(dir, BIN);
+
   int from_state = current_turn_count;
   int prev_state = current_turn_count;
-      Serial.println(current_turn_count);
+
+  Serial.println(current_turn_count);
 
   turn(dir);
   delay(100);
@@ -183,18 +187,24 @@ void loop() {
 
   if (want_open != want_closed) {
     Serial.print("Want open ");
-    Serial.println(want_open, BIN);
+    Serial.print(want_open, BIN);
+    Serial.print(" is open ");
+    Serial.println(is_open, BIN);
     Serial.print("Want close ");
-    Serial.println(want_closed, BIN);
+    Serial.print(want_closed, BIN);
+    Serial.print(" is closed ");
+    Serial.println(is_closed, BIN);
+
     if (want_closed && !is_closed) {
-      turn_total(CLOSE, 540);
+      turn_total(CLOSE, 720);
     }
     
-    if (want_open && !is_open) {
-      turn_total(OPEN, 540);
+    if (want_open  && !is_open) {
+      turn_total(OPEN, 720);
     }
   }
 
   delay(100);
 }
+
 
