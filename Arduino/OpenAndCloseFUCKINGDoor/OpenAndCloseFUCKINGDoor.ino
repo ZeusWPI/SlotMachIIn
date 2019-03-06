@@ -138,12 +138,12 @@ void stop_turn(void) {
    analogWrite(MOTOR_PWM, 0);
 }
 
+// Turn to the desired degrees
 void turn_total(bool dir, int deg) {
   Serial.print("In turn_total");
   Serial.print("Turning ");
   Serial.println(dir, BIN);
 
-  int from_state = current_turn_count;
   int prev_state = current_turn_count;
 
   Serial.println(current_turn_count);
@@ -151,23 +151,23 @@ void turn_total(bool dir, int deg) {
   turn(dir);
   delay(100);
 
-  while(abs(from_state - current_turn_count) < deg && prev_state != current_turn_count) {
+  while(( (dir && deg < current_turn_count) || (!dir && deg > current_turn_count) )  && prev_state != current_turn_count) {
     prev_state = current_turn_count;
     delay(100);
   }
-      Serial.println(current_turn_count);
+
+  Serial.println(current_turn_count);
 
   stop_turn();
 
-  is_open = dir == OPEN;
-  is_closed = !is_open;
+  update_openness();
 }
 
 void determine_start(void) {
   turn_total(CLOSE, 7000);
   current_turn_count = 0;
 
-  turn_total(OPEN, 20);
+  turn_total(OPEN, -20);
 }
 
 void stop() {
@@ -191,8 +191,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(SER2), ser2_int, CHANGE);
 
 
-  ser1 = GETSER1;
-  ser2 = GETSER2;
+  ser1 = !GETSER1;
+  ser2 = !GETSER2;
   
   determine_start();
 }
@@ -212,11 +212,11 @@ void loop() {
     Serial.println(is_closed, BIN);
 
     if (want_closed && !is_closed) {
-      turn_total(CLOSE, 180);
+      turn_total(CLOSE, -50);
     }
 
     if (want_open && !is_open) {
-      turn_total(OPEN, 180);
+      turn_total(OPEN, -360);
     }
   }
 
