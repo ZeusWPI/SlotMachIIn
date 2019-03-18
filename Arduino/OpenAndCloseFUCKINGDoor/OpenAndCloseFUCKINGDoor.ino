@@ -18,7 +18,7 @@
 #define IS_CLOSE_PIN 11
 
 // Half the max speed
-#define TURN_SPEED 200
+#define TURN_SPEED 175
 
 #define GETSER1 (digitalRead(SER1) == HIGH)
 #define GETSER2 (digitalRead(SER2) == HIGH)
@@ -44,6 +44,7 @@ volatile int ser2 = 0;
 bool is_open = false;
 bool is_closed = false;
 
+/*
 int get_cw_index(bool ser1, bool ser2) {
   int out = 0;
   if (ser1) {
@@ -54,7 +55,7 @@ int get_cw_index(bool ser1, bool ser2) {
   }
   return reverseCwSequence[out];
 }
-
+*/
 void init_motor_pinout() {
   pinMode(MOTOR_PWM, OUTPUT);
   pinMode(SER1, INPUT);
@@ -62,7 +63,7 @@ void init_motor_pinout() {
   pinMode(ROT_CLOCK, OUTPUT);
   pinMode(ROT_CCLOCK, OUTPUT);
 }
-
+/*
 void update_openness() {
 
   if (is_open != current_turn_count < OPEN_THRESHHOLD) {
@@ -101,7 +102,7 @@ void update_current_turn() {
 
   //update_openness();
 }
-
+*/
 void ser1_int() {
   if (ser1 == ser2) {
     current_turn_count ++;
@@ -140,7 +141,7 @@ void stop_turn(void) {
 
 // Turn to the desired degrees
 void turn_total(bool dir, int deg) {
-  Serial.print("In turn_total");
+  Serial.print("In turn_total ");
   Serial.print("Turning ");
   Serial.println(dir, BIN);
 
@@ -151,7 +152,21 @@ void turn_total(bool dir, int deg) {
   turn(dir);
   delay(100);
 
-  while(( (dir && deg < current_turn_count) || (!dir && deg > current_turn_count) )  && prev_state != current_turn_count) {
+  // Changing the lt en gt constantly because of increasing or decreasing current_turn_count on cw of ccw changing
+  /**
+   * 
+   * This is really getting non deterministic, it is pretty bad
+   * Sometimes whether or not it turns cw or ccw current_turn_count always assends or always decends which you don't want.
+   * 
+   * Excpected behavior is that cw and ccw at least cancel each other out.
+   * Then you can say whether or not the wanted amount of degrees is bigger or smaller.
+   * 
+   * Idealiter we want that for example cw always goes assending, and ccw always decends. How does one do this?
+   * 
+   * Another challenging point is that everything shouldn't break when one interupt is missed (can be ignore with lower turn speeds.
+   * 
+   */
+  while(( (dir && deg > current_turn_count) || (!dir && deg < current_turn_count) )  && prev_state != current_turn_count) {
     prev_state = current_turn_count;
     delay(100);
   }
@@ -160,10 +175,13 @@ void turn_total(bool dir, int deg) {
 
   stop_turn();
 
-  update_openness();
+//  update_openness();
 }
 
 void determine_start(void) {
+  current_turn_count = 0;
+  turn(CLOSE);
+  
   turn_total(CLOSE, 7000);
   current_turn_count = 0;
 
@@ -190,11 +208,16 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(SER1), ser1_int, CHANGE);
   attachInterrupt(digitalPinToInterrupt(SER2), ser2_int, CHANGE);
 
+  //determine_start();
 
   ser1 = !GETSER1;
-  ser2 = !GETSER2;
+  ser2 = ser1;
+
+  Serial.print("Ser 1 ");
+  Serial.println(ser1);
+  Serial.print("Ser 2 ");
+  Serial.println(ser2);  
   
-  determine_start();
 }
 
 void loop() {
@@ -220,6 +243,8 @@ void loop() {
     }
   }
 
+  Serial.print(((current_turn_count % 360) + 360) % 360);
+  Serial.print(" ");
   Serial.println(current_turn_count);
   Serial.print("Ser 1 ");
   Serial.println(ser1);
