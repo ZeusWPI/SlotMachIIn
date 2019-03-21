@@ -18,7 +18,8 @@
 #define IS_CLOSE_PIN 11
 
 // Half the max speed
-#define TURN_SPEED 175
+//#define TURN_SPEED 175
+#define TURN_SPEED 80
 
 #define OPEN true
 #define CLOSE false
@@ -31,6 +32,7 @@
 
 bool is_open = false;
 bool is_closed = false;
+bool result = false;
 
 Encoder turnCount(SER1, SER2);
 
@@ -143,6 +145,8 @@ void setup() {
 //  attachInterrupt(digitalPinToInterrupt(SER1), ser1_int, CHANGE);
 //  attachInterrupt(digitalPinToInterrupt(SER2), ser2_int, CHANGE);
 
+  pinMode(LED_BUILTIN, OUTPUT); //Tentative
+
   //determine_start();
 
 /*  ser1 = !GETSER1;
@@ -154,6 +158,89 @@ void setup() {
   Serial.println(ser2);  
   */
   
+}
+
+
+// Turn to the desired degrees
+// Maxi's function rewrite
+bool better_turn_total(bool dir, long deg) {
+  Serial.println("Start better_turn_total ");
+  long prev_state, current_state;
+  prev_state = turnCount.read();
+  current_state = prev_state;
+
+  digitalWrite(LED_BUILTIN, LOW);
+  Serial.print("Starting from state ");
+  Serial.println(prev_state);
+  Serial.print("Desired state: ");
+  Serial.println(deg);
+  Serial.print("Turning direction: ");
+  Serial.println(dir, BIN);
+
+  /*
+  if ( (!dir && ( deg < current_state)) || (dir && (deg > current_state)) ) {
+    Serial.print("Requested degrees cannot be obtained in this direction. Current state is: ");
+    Serial.println(current_state);
+    return false;
+  }
+  */
+  
+  //Serial.print("Turning ");
+  //Serial.println(dir, BIN);
+  //Serial.print(prev_state);
+
+  //Tentative
+  if(deg > prev_state) dir = CLOSE;
+  else if(deg <= prev_state) dir = OPEN;
+  else Serial.print("You dun goofed");
+  //End tentative
+
+  turn(dir);
+  delay(20);
+  if(dir){
+    Serial.println("Dir is TRUE");
+    while(deg < current_state){
+      Serial.println("Inside the WHILE");
+      Serial.print("Deg is: ");
+      Serial.println(deg);
+      Serial.print("current_state is: ");
+      Serial.println(current_state);
+      delay(20);
+      current_state = turnCount.read();
+    }
+  }
+  if(!dir){
+    Serial.println("Dir is FALSE");
+    while(deg > current_state){
+      Serial.println("Inside the WHILE");
+      Serial.print("Deg is: ");
+      Serial.println(deg);
+      Serial.print("current_state is: ");
+      Serial.println(current_state);
+      delay(20);
+      current_state = turnCount.read();
+    }
+  }
+  /*
+  while(( (dir && (deg > current_state)) || (!dir && (deg < current_state)) )) {
+    //  && prev_state != current_state
+//    prev_state = current_state;
+    current_state = turnCount.read();
+    delay(100);
+  }
+  */
+  stop_turn();
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(250);
+  Serial.print(prev_state);
+  Serial.print(" -> ");
+  Serial.println(turnCount.read());
+
+  Serial.println("Better_turn_count return complete");
+  digitalWrite(LED_BUILTIN, LOW);
+  return true;
+
+//  update_openness();
 }
 
 void loop() {
@@ -171,23 +258,34 @@ void loop() {
     Serial.println(is_closed, BIN);
 
     if (want_closed && !is_closed) {
-      turn_total(CLOSE, -720);
+      Serial.println("Closing");
+      result = better_turn_total(CLOSE, 180);
+      if(result){
+        is_closed = true;
+        is_open = false;
+      }
     }
 
     if (want_open && !is_open) {
-      turn_total(OPEN, -50);
+      Serial.println("Opening");
+      result = better_turn_total(OPEN, 40);
+      if(result){
+        is_closed = false;
+        is_open = true;
+      }
     }
+    
   }
 
-  Serial.println(turnCount.read() % 720);
-  /*Serial.print(" ");
-  Serial.println(current_turn_count);
-  Serial.print("Ser 1 ");
-  Serial.println(ser1);
-  Serial.print("Ser 2 ");
-  Serial.println(ser2);*/
+    Serial.print("Want open ");
+    Serial.print(want_open, BIN);
+    Serial.print(" is open ");
+    Serial.println(is_open, BIN);
+    Serial.print("Want close ");
+    Serial.print(want_closed, BIN);
+    Serial.print(" is closed ");
+    Serial.println(is_closed, BIN);
+  Serial.println(turnCount.read());
 
   delay(500);
 }
-
-
